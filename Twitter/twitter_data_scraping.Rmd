@@ -1,0 +1,175 @@
+## Import the library
+```{r}
+library(tidyverse)
+library(rtweet)
+library(reshape2)
+library(dplyr)
+library(igraph)
+library(glue)
+```
+
+## Keys and Token
+```{r}
+api_key <- 'bX5SuJ9xegEl8GJ5so7dsEtkW'
+api_secret_key <- 'JEqIU2YiKp5ONwlhU5ut6TgspMpPRvmmaLkssskCx3pnuDTnVp'
+access_token <- '1526771089363582977-3VbQQP5VPp3JVj58VilKWOsUr6SZ2N'
+access_secret_token <- 'S5fGPg2614GIYt0IdzLXh1mMnQ3YCbMWzZj4xE8Nxcg8i'
+```
+
+## List of most-streamed artistis on Spotify
+- Blackpink 
+- Justin Bieber
+- BTS 
+- Marshmello
+- Eminem
+- Ed Sheeran
+- Ariana Grande 
+- Taylor Swift
+- Billie Eilish
+- Katy Perry
+- Alan Walker
+- Bad Bunny
+- Rihanna
+- One Direction
+- XXXTentacion
+- Daddy Yankee
+- Maroon 5
+- Shakira
+- Ozuna
+- Bruno Mars
+
+## Basic info of the artists
+
+1. twitter user ID
+2. number of followers
+3. account registered date 
+4. number of tweet?
+
+```{r}
+artists <- c('BLACKPINK', 'justinbieber', 'BTS_twt', 'marshmello', 'Eminem', 'edsheeran', 'taylorswift13', 'billieeilish', 'katyperry', 'IAmAlanWalker', 'sanbenito',
+             'rihanna', 'onedirection', 'xxxtentacion', 'daddy_yankee', 'maroon5', 'shakira', 'ozuna', 'BrunoMars')
+
+artists2 <- c('FKAtwigs', 'andygrammer', 'c_woodzofficial', 'ohashiTrio', 'sadgirlsloan', 'BeachBunnyMusic', 'CAVETOWN', 'clairo', 'oneruel', 'Olivertree',
+              'TessaViolet', 'regrettesband', 'rrr001222', 'halfaliveco', 'Sugababes', 'BANNERSMUSIC', 'alliex', 'beforeyouexit', 'Ruellemusic', 'morguemami')
+
+```
+
+```{r}
+# artists_info <- lookup_users(artists, parse = TRUE)
+artists2_info <- lookup_users(artists2, parse = TRUE)
+```
+
+```{r}
+# artists_info <- select(artists_info, c('user_id', 'screen_name', 'followers_count', 'friends_count', 'account_created_at'))
+artists2_info <- select(artists2_info, c('user_id', 'screen_name', 'followers_count', 'friends_count', 'account_created_at'))
+```
+
+```{r}
+# write.csv(artists_info, file = "S:\\Study\\DATA419\\GroupProject\\Twitter\\artists_info.csv")
+# write.csv(artists2_info, file = "S:\\Study\\DATA419\\GroupProject\\Twitter\\artists2_info.csv")
+```
+
+```{r}
+# artists_info <- read.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\artists_info.csv")
+# artists2_info <- read.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\artists2_info.csv")
+glimpse(artists_info)
+glimpse(artists2_info)
+```
+
+## Get the list of followers 
+Get 10,000 first for each artist
+
+```{r}
+# Get 10,000 followers for each artist
+
+followers <- artists %>%
+  map_df(~get_followers(.x, n = 100000, retryonratelimit = TRUE) %>% 
+           mutate(from_account = .x))
+
+# followers2 <- artists2 %>%
+#   map_df(~get_followers(.x, n = 10000, retryonratelimit = TRUE) %>% 
+#            mutate(from_account = .x))
+```
+
+```{r}
+for (artist in artists) {
+followers <- artist %>% get_followers(n = 50000, retryonratelimit = TRUE)
+followers %>% write.csv(glue("S:\\Study\\DATA419\\GroupProject\\Twitter\\{artist}_followers.csv"))
+}
+```
+
+```{r}
+followers <- 'selenagomez' %>% get_followers(n = 50000, retryonratelimit = TRUE)
+followers %>% write.csv(glue("S:\\Study\\DATA419\\GroupProject\\Twitter\\selenagomez_followers.csv"))
+
+```
+```{r}
+
+
+# 
+# followers %>% write.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\followers.csv")
+
+followers2 %>% write.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\followers2_more.csv")
+```
+ 
+```{r}
+followers2 <- read.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\followers2.csv")
+glimpse(followers2)
+```
+
+## Transform the data from long to wide to get a incidence matrix
+```{r}
+# follower_matirx <- followers %>%
+#   mutate(yesno = 1) %>%
+#   distinct %>%
+#   spread(from_account, yesno, fill = 0)
+
+
+follower2_matirx <- followers2 %>%
+  mutate(yesno = 1) %>%
+  distinct %>%
+  spread(from_account, yesno, fill = 0)
+```
+
+```{r}
+follower_matirx %>% write.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\follower_matirx.csv")
+```
+
+```{r}
+follower_matirx <- read.csv("S:\\Study\\DATA419\\GroupProject\\Twitter\\follower_matirx.csv")
+glimpse(follower_matirx)
+```
+
+```{r}
+for (i in artists) {
+print(followers %>% filter(from_account == i) %>% nrow())
+}
+```
+
+
+```{r}
+common_followers <- follower_matirx %>% cbind(weight = rowSums(follower_matirx[2:20]))
+```
+
+```{r}
+#glimpse(common_followers)
+common_followers <- common_followers[common_followers$weight > 1, ]
+```
+
+```{r}
+sample <- common_followers %>% top_n(10) 
+sample <- sample[2:20] %>% as.matrix()
+network <- graph_from_incidence_matrix(sample)
+plot(network, vertex.label = NA)
+```
+```{r}
+set.seed(1)
+data <- matrix(sample(0:2, 15, replace=TRUE), nrow=3)
+colnames(data) <- letters[1:5]
+rownames(data) <- LETTERS[1:3]
+```
+
+```{r}
+## search for 1000 tweets in English
+djt <- search_tweets(q = "realdonaldtrump", n = 1000, lang = "en")
+```
