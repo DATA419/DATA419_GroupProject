@@ -10,10 +10,10 @@ library(glue)
 
 ## Keys and Token
 ```{r}
-api_key <- 'bX5SuJ9xegEl8GJ5so7dsEtkW'
-api_secret_key <- 'JEqIU2YiKp5ONwlhU5ut6TgspMpPRvmmaLkssskCx3pnuDTnVp'
-access_token <- '1526771089363582977-3VbQQP5VPp3JVj58VilKWOsUr6SZ2N'
-access_secret_token <- 'S5fGPg2614GIYt0IdzLXh1mMnQ3YCbMWzZj4xE8Nxcg8i'
+api_key <- '###################################'
+api_secret_key <- '###################################'
+access_token <- '###################################'
+access_secret_token <- '###################################'
 ```
 
 ## List of most-streamed artistis on Spotify
